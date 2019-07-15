@@ -18,6 +18,7 @@ else {
   const timeInMin = parseInt(process.argv[9]) || 15;
   const nowISOStr = new Date().toISOString();
   const nowISO = new Date(nowISOStr).getTime();
+  const nowISODate = new Date(nowISOStr);
 
   const MongoClient = require('mongodb').MongoClient;
 
@@ -45,7 +46,7 @@ else {
 
   const updateClause = {
     $unset : { "failReason" : null, "failCount" : null, "failedAt": null, "lastRunAt" : null, "lastFinishedAt" : null  },
-    $set: {  "nextRunAt" : (nowISOStr), "lastModifiedBy": null, "lockedAt": null }
+    $set: {  "nextRunAt" : nowISODate, "lastModifiedBy": null, "lockedAt": null }
   };
 
   ( async () => {
