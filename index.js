@@ -45,8 +45,8 @@ else {
   };
 
   const updateClause = {
-    $unset : { "failReason" : null, "failCount" : null, "failedAt": null, "lastRunAt" : null, "lastFinishedAt" : null  },
-    $set: {  "nextRunAt" : nowISODate, "lastModifiedBy": null, "lockedAt": null }
+    $unset : { "failReason" : null, "failCount" : null, "failedAt": null, "lastRunAt" : null, "lastFinishedAt" : null, "lockedAt": null  },
+    $set: {  "nextRunAt" : nowISODate, "lastModifiedBy": null }
   };
 
   ( async () => {
