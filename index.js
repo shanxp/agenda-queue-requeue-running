@@ -33,33 +33,39 @@ else {
   const connectionString = `mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hostname}/${mongodb.db}?authSource=${mongodb.authSource}`;
 
   // get running for more then X minutes
+  // lastFinishedAt will not be there if not failed yet
   const condition = {
     "name" : queueName ,
-    "lockedAt" : { $ne : null }, 
-    "nextRunAt" : { $eq : null } ,
-    "lastModifiedBy" : { $eq : null } , 
-    "lastRunAt" : { $ne : null },
-    "lastRunAt" : {
-      $lte: new Date(nowISO - 1000 * 60 * timeInMin)
-    }
+    $and : [ { "nextRunAt": { $eq: null }},
+             { $or : [{ $where : "this.lastRunAt > this.lastFinishedAt" }, {"lastFinishedAt": { $eq: null }} ] },
+             {"lastRunAt" : {
+                    $lte: new Date(nowISO - 1000 * 60 * timeInMin)
+                }
+             }
+            ]
   };
 
   const updateClause = {
     $unset : { "failReason" : null, "failCount" : null, "failedAt": null, "lastRunAt" : null, "lastFinishedAt" : null, "lockedAt": null  },
-    $set: {  "nextRunAt" : nowISODate, "lastModifiedBy": null }
+    $set: {  "nextRunAt" : nowISODate }
   };
 
   ( async () => {
     try {
-        const client = await MongoClient.connect(connectionString, { useNewUrlParser: true });
+        const client = await MongoClient.connect(connectionString, 
+            {
+                useNewUrlParser: true,
+                useUnifiedTopology: true,
+            }
+            );
         const db = await client.db(database);
         const source = await db.collection(originalCollection);
-        await source.updateMany(
+        const result = await source.updateMany(
             condition,
             updateClause
           );
     
-        // console.log(condition);       
+        console.log('Result', result.result);
         process.exit(1);
     } catch(e) {
       console.error(e);
